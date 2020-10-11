@@ -1,5 +1,7 @@
 package com.rmarioo.checkout
 
+import java.math.BigDecimal
+
 data class CheckoutInfo(
     val user: User,
     val paymentInfo: PaymentInfo,
@@ -14,6 +16,7 @@ enum class DeliveryType {
   SAME_DAY
 }
 
+data class Payment(val fee: BigDecimal)
 
 data class PaymentInfo (val paymentType: String = "crekitCard")
 

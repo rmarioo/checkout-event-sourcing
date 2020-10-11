@@ -9,13 +9,13 @@ class CheckoutUseCase(
     val notificationSender: NotificationManager,
 ) {
     fun checkout(checkoutData: CheckoutInfo) {
-        val paymentOk = paymentGateway.create(checkoutData.paymentInfo)
+        val payment = paymentGateway.create(checkoutData.paymentInfo)
         val pricedProduct = supplierManager.buy(checkoutData.product)
         val delivery: DeliveryInfo = deliveryManager.scheduleDelivery(pricedProduct, checkoutData.user)
 
         val receipt =
             """dear ${checkoutData.user.name} 
- you just bought ${pricedProduct.product.name} at price ${pricedProduct.price} 
+ you just bought ${pricedProduct.product.name} at price ${pricedProduct.price.add(payment.fee) } 
  it will be delivered with ${delivery.type.name} to your address ${delivery.address}"""
 
         notificationSender.send(receipt)
@@ -28,11 +28,11 @@ interface NotificationManager {
 }
 
 interface PaymentGateway {
-    fun create(paymentInfo: PaymentInfo): Boolean
+    fun create(paymentInfo: PaymentInfo): Payment
 }
 
 interface SupplierManager {
-    fun buy(product: Product): PricedProduct
+    fun buy(proRuct: Product): PricedProduct
 }
 
 interface DeliveryManager {

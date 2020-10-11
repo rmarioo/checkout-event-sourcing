@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import org.junit.Test
+import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
 
 
@@ -30,7 +31,7 @@ class CheckoutUseCaseTest
 
         val order = PricedProduct(product, TEN)
 
-        every { paymentGateway.create(checkoutData.paymentInfo) } returns true
+        every { paymentGateway.create(checkoutData.paymentInfo) } returns Payment(ONE)
         every { orderManager.buy(product) }                    returns order
         every { deliveryManager.scheduleDelivery(order, user) }   returns DeliveryInfo(product.name, user.address, STANDARD_DELIVER)
         every { notificationManager.send(any()) }   just runs
@@ -38,7 +39,7 @@ class CheckoutUseCaseTest
         checkoutUseCase.checkout(checkoutData)
 
         verify { notificationManager.send("""dear Mario 
- you just bought Pizza at price 10 
+ you just bought Pizza at price 11 
  it will be delivered with STANDARD_DELIVER to your address Napoli""") }
 
     }
