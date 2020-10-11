@@ -6,8 +6,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import org.hamcrest.CoreMatchers.`is`
-import org.junit.Assert
 import org.junit.Test
 import java.math.BigDecimal.TEN
 
@@ -16,7 +14,7 @@ class CheckoutUseCaseTest
 {
 
     val paymentGateway  = mockk<PaymentGateway>()
-    val orderManager  = mockk<OrderManager>()
+    val orderManager  = mockk<SupplierManager>()
     val deliveryManager  = mockk<DeliveryManager>()
     val notificationManager  = mockk<NotificationManager>()
 
@@ -30,10 +28,10 @@ class CheckoutUseCaseTest
         val product = checkoutData.product
         val user = checkoutData.user
 
-        val order = Order(product, TEN)
+        val order = PricedProduct(product, TEN)
 
         every { paymentGateway.create(checkoutData.paymentInfo) } returns true
-        every { orderManager.create(product) }                    returns order
+        every { orderManager.buy(product) }                    returns order
         every { deliveryManager.scheduleDelivery(order, user) }   returns DeliveryInfo(product.name, user.address, STANDARD_DELIVER)
         every { notificationManager.send(any()) }   just runs
 

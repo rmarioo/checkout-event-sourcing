@@ -4,18 +4,18 @@ import java.math.BigDecimal
 
 class CheckoutUseCase(
     val paymentGateway: PaymentGateway,
-    val orderManager: OrderManager,
+    val supplierManager: SupplierManager,
     val deliveryManager: DeliveryManager,
     val notificationSender: NotificationManager,
 ) {
     fun checkout(checkoutData: CheckoutInfo) {
         val paymentOk = paymentGateway.create(checkoutData.paymentInfo)
-        val order = orderManager.create(checkoutData.product)
-        val delivery: DeliveryInfo = deliveryManager.scheduleDelivery(order, checkoutData.user)
+        val pricedProduct = supplierManager.buy(checkoutData.product)
+        val delivery: DeliveryInfo = deliveryManager.scheduleDelivery(pricedProduct, checkoutData.user)
 
         val receipt =
             """dear ${checkoutData.user.name} 
- you just bought ${order.product.name} at price ${order.price} 
+ you just bought ${pricedProduct.product.name} at price ${pricedProduct.price} 
  it will be delivered with ${delivery.type.name} to your address ${delivery.address}"""
 
         notificationSender.send(receipt)
@@ -31,13 +31,13 @@ interface PaymentGateway {
     fun create(paymentInfo: PaymentInfo): Boolean
 }
 
-interface OrderManager {
-    fun create(product: Product): Order
+interface SupplierManager {
+    fun buy(product: Product): PricedProduct
 }
 
 interface DeliveryManager {
-    fun scheduleDelivery(order: Order, user: User): DeliveryInfo
+    fun scheduleDelivery(pricedProduct: PricedProduct, user: User): DeliveryInfo
 }
 
-data class Order(val product: Product, val price: BigDecimal)
-data class Receipt(val order: Order,val delivery:  DeliveryInfo ,val user: User)
+data class PricedProduct(val product: Product, val price: BigDecimal)
+data class Receipt(val pricedProduct: PricedProduct, val delivery:  DeliveryInfo, val user: User)
