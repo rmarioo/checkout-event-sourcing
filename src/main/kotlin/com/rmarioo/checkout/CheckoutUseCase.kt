@@ -13,29 +13,38 @@ class CheckoutUseCase(
         val pricedProduct = supplierManager.buy(checkoutData.product)
         val delivery: DeliveryInfo = deliveryManager.scheduleDelivery(pricedProduct, checkoutData.user)
 
+        Noy(checkoutData, pricedProduct, payment, delivery)
+    }
+
+    private fun Noy(
+        checkoutData: CheckoutInfo,
+        pricedProduct: PricedProduct,
+        payment: Payment,
+        delivery: DeliveryInfo
+    ) {
         val receipt =
             """dear ${checkoutData.user.name} 
- you just bought ${pricedProduct.product.name} at price ${pricedProduct.price.add(payment.fee) } 
- it will be delivered with ${delivery.type.name} to your address ${delivery.address}"""
+     you just bought ${pricedProduct.product.name} at price ${pricedProduct.price.add(payment.fee)} 
+     it will be delivered with ${delivery.type.name} to your address ${delivery.address}"""
 
         notificationSender.send(receipt)
     }
 }
 
-interface NotificationManager {
+fun interface NotificationManager {
     fun send(receipt: String)
 
 }
 
-interface PaymentGateway {
+fun interface PaymentGateway {
     fun create(paymentInfo: PaymentInfo): Payment
 }
 
-interface SupplierManager {
+fun interface SupplierManager {
     fun buy(proRuct: Product): PricedProduct
 }
 
-interface DeliveryManager {
+fun interface DeliveryManager {
     fun scheduleDelivery(pricedProduct: PricedProduct, user: User): DeliveryInfo
 }
 
