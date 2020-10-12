@@ -1,5 +1,14 @@
 package com.rmarioo.checkout
 
+import com.rmarioo.checkout.Command.Buy
+import com.rmarioo.checkout.Command.Pay
+import com.rmarioo.checkout.Command.ScheduleDelivery
+import com.rmarioo.checkout.Command.SendNotification
+import com.rmarioo.checkout.Event.DELIVERED
+import com.rmarioo.checkout.Event.NOTIFICATION_CREATED
+import com.rmarioo.checkout.Event.PAID
+import com.rmarioo.checkout.Event.PURCHASED
+
 class CommandHandler(val eventStore: InMemoryEventStore,
                      val paymentGateway: PaymentGateway,
                      val supplierManager: SupplierManager,
@@ -8,24 +17,24 @@ class CommandHandler(val eventStore: InMemoryEventStore,
 ) {
 
     fun handleCommand(command: Command) = when (command) {
-        is Command.Pay -> {
+        is Pay -> {
             val payment = paymentGateway.create(command.paymentInfo)
-            eventStore.addEvent(Event.PAID(payment))
+            eventStore.addEvent(PAID(payment))
         }
-        is Command.Buy -> {
+        is Buy -> {
             val pricedProduct = supplierManager.buy(command.product)
-            eventStore.addEvent(Event.PURCHASED(pricedProduct))
+            eventStore.addEvent(PURCHASED(pricedProduct))
         }
-        is Command.ScheduleDelivery -> {
+        is ScheduleDelivery -> {
             val deliveryInfo =
                 deliveryManager.scheduleDelivery(command.pricedProduct, command.user)
-            eventStore.addEvent(Event.DELIVERED(deliveryInfo))
+            eventStore.addEvent(DELIVERED(deliveryInfo))
         }
-        is Command.SendNotification -> {
+        is SendNotification -> {
             notificationSender.send(receiptFrom(command))
 
             eventStore.addEvent(
-                Event.NOTIFICATION_CREATED(
+                NOTIFICATION_CREATED(
                     Receipt(
                         command.pricedProduct,
                         command.delivery,
@@ -37,7 +46,7 @@ class CommandHandler(val eventStore: InMemoryEventStore,
         }
     }
 
-    private fun receiptFrom(command: Command.SendNotification): String {
+    private fun receiptFrom(command: SendNotification): String {
         return """dear ${command.checkoutData.user.name} 
          you just bought ${command.pricedProduct.product.name} at price ${
             command.pricedProduct.price.add(
