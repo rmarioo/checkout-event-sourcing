@@ -32,16 +32,16 @@ class CheckoutWithEventsTest {
 
     val eventStore = InMemoryEventStore()
 
-    val commandHandler = CommandHandler(eventStore, paymentGateway,supplierManager,deliveryManager,notificationSender)
+    val commandHandler = CommandHandler(eventStore)
 
     @Test
     fun handleCommands() {
 
         val commands: List<Command> = listOf(
-            Pay(paymentInfo)
-            , Buy(product)
-            , ScheduleDelivery(pricedProduct, user)
-            , SendNotification(checkoutData,pricedProduct,payment,deliveryInfo)
+            Pay(paymentInfo,paymentGateway)
+            , Buy(product,supplierManager)
+            , ScheduleDelivery(pricedProduct, user,deliveryManager)
+            , SendNotification(checkoutData,pricedProduct,payment,deliveryInfo,notificationSender)
         )
 
         commandHandler.handleCommands(commands)
