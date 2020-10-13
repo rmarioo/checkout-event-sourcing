@@ -1,11 +1,19 @@
 package com.rmarioo.checkout
 
-import com.rmarioo.checkout.CheckoutState.NOTIFICATION_SENT
-import com.rmarioo.checkout.Command.Buy
-import com.rmarioo.checkout.Command.Pay
-import com.rmarioo.checkout.Command.ScheduleDelivery
-import com.rmarioo.checkout.Command.SendNotification
+import com.rmarioo.checkout.events.CheckoutState.NOTIFICATION_SENT
+import com.rmarioo.checkout.commands.Command.Buy
+import com.rmarioo.checkout.commands.Command.Pay
+import com.rmarioo.checkout.commands.Command.ScheduleDelivery
+import com.rmarioo.checkout.commands.Command.SendNotification
 import com.rmarioo.checkout.DeliveryType.STANDARD_DELIVER
+import com.rmarioo.checkout.commands.CommandHandler
+import com.rmarioo.checkout.commands.DeliveryManager
+import com.rmarioo.checkout.events.EventHandler
+import com.rmarioo.checkout.events.InMemoryEventStore
+import com.rmarioo.checkout.commands.NotificationManager
+import com.rmarioo.checkout.commands.PaymentGateway
+import com.rmarioo.checkout.commands.PricedProduct
+import com.rmarioo.checkout.commands.SupplierManager
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -25,28 +33,28 @@ class CheckoutWithEventsTest {
 
     val deliveryInfo = DeliveryInfo(product.name, user.address, STANDARD_DELIVER)
 
-    val paymentGateway  = PaymentGateway  { payment }
-    val supplierManager = SupplierManager { pricedProduct }
-    val deliveryManager = DeliveryManager { pricedProduct, user -> deliveryInfo }
-    val notificationSender = NotificationManager {}
-
-    val eventStore = InMemoryEventStore()
-
-    val commandHandler = CommandHandler(eventStore, paymentGateway,supplierManager,deliveryManager,notificationSender)
 
     @Test
     fun handleCommands() {
 
-        val commands: List<Command> = listOf(
-            Pay(paymentInfo)
-            , Buy(product)
-            , ScheduleDelivery(pricedProduct, user)
-            , SendNotification(checkoutData,pricedProduct,payment,deliveryInfo)
+        val eventStore = InMemoryEventStore()
+
+        val commandHandler = CommandHandler(eventStore,
+            PaymentGateway  { payment },
+            SupplierManager { pricedProduct },
+            DeliveryManager { pricedProduct, user -> deliveryInfo },
+            NotificationManager {})
+
+        commandHandler.handleCommands(
+            listOf(
+                Pay(paymentInfo)
+                , Buy(product)
+                , ScheduleDelivery(pricedProduct, user)
+                , SendNotification(checkoutData, pricedProduct, payment, deliveryInfo)
+            )
         )
 
-        commandHandler.handleCommands(commands)
-
-        val currentState = retrieveCurrentState(eventStore)
+        val currentState = EventHandler().retrieveCurrentState(eventStore)
 
         assertThat(currentState, `is`(NOTIFICATION_SENT))
     }

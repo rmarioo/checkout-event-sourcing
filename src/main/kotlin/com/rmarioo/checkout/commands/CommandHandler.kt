@@ -1,13 +1,21 @@
-package com.rmarioo.checkout
+package com.rmarioo.checkout.commands
 
-import com.rmarioo.checkout.Command.Buy
-import com.rmarioo.checkout.Command.Pay
-import com.rmarioo.checkout.Command.ScheduleDelivery
-import com.rmarioo.checkout.Command.SendNotification
-import com.rmarioo.checkout.Event.DELIVERED
-import com.rmarioo.checkout.Event.NOTIFICATION_CREATED
-import com.rmarioo.checkout.Event.PAID
-import com.rmarioo.checkout.Event.PURCHASED
+import com.rmarioo.checkout.commands.Command.Buy
+import com.rmarioo.checkout.commands.Command.Pay
+import com.rmarioo.checkout.commands.Command.ScheduleDelivery
+import com.rmarioo.checkout.commands.Command.SendNotification
+import com.rmarioo.checkout.DeliveryInfo
+import com.rmarioo.checkout.events.Event
+import com.rmarioo.checkout.events.Event.DELIVERED
+import com.rmarioo.checkout.events.Event.NOTIFICATION_CREATED
+import com.rmarioo.checkout.events.Event.PAID
+import com.rmarioo.checkout.events.Event.PURCHASED
+import com.rmarioo.checkout.Payment
+import com.rmarioo.checkout.PaymentInfo
+import com.rmarioo.checkout.Product
+import com.rmarioo.checkout.User
+import com.rmarioo.checkout.events.InMemoryEventStore
+import java.math.BigDecimal
 
 class CommandHandler(val eventStore: InMemoryEventStore,
                      val paymentGateway: PaymentGateway,
@@ -60,3 +68,25 @@ class CommandHandler(val eventStore: InMemoryEventStore,
         commands.forEach {c -> handleCommand(c)}
     }
 }
+
+
+fun interface NotificationManager {
+    fun send(receipt: String)
+
+}
+
+fun interface PaymentGateway {
+    fun create(paymentInfo: PaymentInfo): Payment
+}
+
+fun interface SupplierManager {
+    fun buy(proRuct: Product): PricedProduct
+}
+
+fun interface DeliveryManager {
+    fun scheduleDelivery(pricedProduct: PricedProduct, user: User): DeliveryInfo
+}
+
+data class PricedProduct(val product: Product, val price: BigDecimal)
+data class Receipt(val pricedProduct: PricedProduct, val delivery: DeliveryInfo, val user: User)
+

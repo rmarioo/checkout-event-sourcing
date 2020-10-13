@@ -1,4 +1,4 @@
-package com.rmarioo.checkout
+package com.rmarioo.checkout.events
 
 class InMemoryEventStore(private var events: MutableList<Event> = mutableListOf()) : EventStore {
 

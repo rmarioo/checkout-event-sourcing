@@ -1,4 +1,9 @@
-package com.rmarioo.checkout
+package com.rmarioo.checkout.events
+
+import com.rmarioo.checkout.DeliveryInfo
+import com.rmarioo.checkout.Payment
+import com.rmarioo.checkout.commands.PricedProduct
+import com.rmarioo.checkout.commands.Receipt
 
 sealed class Event {
     class PAID(val payment: Payment): Event()

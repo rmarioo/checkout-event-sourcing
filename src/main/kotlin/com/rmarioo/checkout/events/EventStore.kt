@@ -1,4 +1,4 @@
-package com.rmarioo.checkout
+package com.rmarioo.checkout.events
 
 interface EventStore {
     fun readEvents(): List<Event>
