@@ -24,7 +24,11 @@ class CommandHandler(val eventStore: InMemoryEventStore,
                      val notificationSender: NotificationManager
 ) {
 
-    fun handleCommand(command: Command) = when (command) {
+    fun handleCommands(commands: List<Command>) {
+        commands.forEach {c -> handleCommand(c)}
+    }
+    
+    private fun handleCommand(command: Command) = when (command) {
         is Pay -> {
             val payment = paymentGateway.create(command.paymentInfo)
             eventStore.addEvent(PAID(payment))
@@ -64,9 +68,7 @@ class CommandHandler(val eventStore: InMemoryEventStore,
          it will be delivered with ${command.delivery.type.name} to your address ${command.delivery.address}"""
     }
 
-    fun handleCommands(commands: List<Command>) {
-        commands.forEach {c -> handleCommand(c)}
-    }
+
 }
 
 

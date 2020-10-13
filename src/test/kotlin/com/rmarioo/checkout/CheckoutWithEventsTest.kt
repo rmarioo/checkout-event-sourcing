@@ -35,7 +35,7 @@ class CheckoutWithEventsTest {
 
 
     @Test
-    fun handleCommands() {
+    fun `execute commands and create state from events`() {
 
         val eventStore = InMemoryEventStore()
 
