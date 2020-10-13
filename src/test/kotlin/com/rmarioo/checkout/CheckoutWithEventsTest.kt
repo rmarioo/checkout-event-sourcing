@@ -1,27 +1,91 @@
 package com.rmarioo.checkout
 
-import com.rmarioo.checkout.events.CheckoutState.NOTIFICATION_SENT
+import com.rmarioo.checkout.DeliveryType.STANDARD_DELIVER
 import com.rmarioo.checkout.commands.Command.Buy
 import com.rmarioo.checkout.commands.Command.Pay
 import com.rmarioo.checkout.commands.Command.ScheduleDelivery
 import com.rmarioo.checkout.commands.Command.SendNotification
-import com.rmarioo.checkout.DeliveryType.STANDARD_DELIVER
 import com.rmarioo.checkout.commands.CommandHandler
 import com.rmarioo.checkout.commands.DeliveryManager
-import com.rmarioo.checkout.events.EventHandler
-import com.rmarioo.checkout.events.InMemoryEventStore
 import com.rmarioo.checkout.commands.NotificationManager
 import com.rmarioo.checkout.commands.PaymentGateway
 import com.rmarioo.checkout.commands.PricedProduct
 import com.rmarioo.checkout.commands.SupplierManager
+import com.rmarioo.checkout.events.CheckoutState.BOOKING_COMPLETED
+import com.rmarioo.checkout.events.CheckoutState.BOOKING
+import com.rmarioo.checkout.events.CheckoutState.ORDER
+import com.rmarioo.checkout.events.CheckoutState.WISH_LIST
+import com.rmarioo.checkout.events.EventHandler
+import com.rmarioo.checkout.events.InMemoryEventStore
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.math.BigDecimal
 
 
-
 class CheckoutWithEventsTest {
+
+    val eventStore = InMemoryEventStore()
+
+    val commandHandler = CommandHandler(eventStore,
+        PaymentGateway  { payment },
+        SupplierManager { pricedProduct },
+        DeliveryManager { pricedProduct, user -> deliveryInfo },
+        NotificationManager {})
+
+    val eventHandler = EventHandler()
+
+    @Test
+    fun `wishlist`() {
+
+        commandHandler.handleCommands(listOf())
+
+        val currentState = eventHandler.retrieveCurrentState(eventStore)
+
+        assertThat(currentState, `is`(WISH_LIST))
+    }
+
+    @Test
+    fun `order`() {
+
+        commandHandler.handleCommands(listOf(Pay(paymentInfo)))
+
+        val currentState = eventHandler.retrieveCurrentState(eventStore)
+
+        assertThat(currentState, `is`(ORDER(payment)))
+    }
+
+    @Test
+    fun `booking`() {
+
+        commandHandler.handleCommands(listOf(
+            Pay(paymentInfo),
+            Buy(product))
+        )
+
+        val currentState = eventHandler.retrieveCurrentState(eventStore)
+
+        assertThat(currentState, `is`(BOOKING(pricedProduct)))
+    }
+
+    @Test
+    fun `booking with all post process completed`() {
+
+        commandHandler.handleCommands(
+            listOf(
+                Pay(paymentInfo)
+                , Buy(product)
+                , ScheduleDelivery(pricedProduct, user)
+                , SendNotification(checkoutData, pricedProduct, payment, deliveryInfo)
+            )
+        )
+
+        val currentState = eventHandler.retrieveCurrentState(eventStore)
+
+        assertThat(currentState, `is`(BOOKING_COMPLETED))
+    }
+
+
 
     val product = Product("Pizza")
     val payment = Payment(BigDecimal.TEN)
@@ -33,30 +97,5 @@ class CheckoutWithEventsTest {
 
     val deliveryInfo = DeliveryInfo(product.name, user.address, STANDARD_DELIVER)
 
-
-    @Test
-    fun `execute commands and create state from events`() {
-
-        val eventStore = InMemoryEventStore()
-
-        val commandHandler = CommandHandler(eventStore,
-            PaymentGateway  { payment },
-            SupplierManager { pricedProduct },
-            DeliveryManager { pricedProduct, user -> deliveryInfo },
-            NotificationManager {})
-
-        commandHandler.handleCommands(
-            listOf(
-                Pay(paymentInfo)
-                , Buy(product)
-                , ScheduleDelivery(pricedProduct, user)
-                , SendNotification(checkoutData, pricedProduct, payment, deliveryInfo)
-            )
-        )
-
-        val currentState = EventHandler().retrieveCurrentState(eventStore)
-
-        assertThat(currentState, `is`(NOTIFICATION_SENT))
-    }
 }
 

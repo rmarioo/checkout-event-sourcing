@@ -14,10 +14,10 @@ sealed class Event {
 }
 
 sealed class CheckoutState {
-    object TO_PAY: CheckoutState()
-    data class PAID(val payment: Payment): CheckoutState()
-    data class PURCHASED(val pricedProduct: PricedProduct): CheckoutState()
+    object WISH_LIST: CheckoutState()
+    data class ORDER(val payment: Payment): CheckoutState()
+    data class BOOKING(val pricedProduct: PricedProduct): CheckoutState()
     data class DELIVERED(val deliveryInfo: DeliveryInfo): CheckoutState()
     data class NOTIFICATION_CREATED(val receipt: Receipt): CheckoutState()
-    object NOTIFICATION_SENT: CheckoutState()
+    object BOOKING_COMPLETED: CheckoutState()
 }

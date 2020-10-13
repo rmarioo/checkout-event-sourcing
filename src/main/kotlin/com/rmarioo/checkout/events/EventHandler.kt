@@ -13,7 +13,7 @@ class EventHandler {
 
         val events = eventStore.readEvents()
 
-        val state: CheckoutState = events.fold(CheckoutState.TO_PAY,::onEvent)
+        val state: CheckoutState = events.fold(CheckoutState.WISH_LIST,::onEvent)
 
         return state
     }
@@ -23,13 +23,13 @@ class EventHandler {
         return when(event)
         {
             is PAID -> when (currentState) {
-                is CheckoutState.TO_PAY -> CheckoutState.PAID(event.payment)
+                is CheckoutState.WISH_LIST -> CheckoutState.ORDER(event.payment)
                 else -> logErrorAndReturn(event, currentState, "PAID")
             }
-            is PURCHASED -> CheckoutState.PURCHASED(event.pricedProduct)
+            is PURCHASED -> CheckoutState.BOOKING(event.pricedProduct)
             is DELIVERED -> CheckoutState.DELIVERED(event.deliveryInfo)
             is NOTIFICATION_CREATED -> CheckoutState.NOTIFICATION_CREATED(event.receipt)
-            is NOTIFICATION_SENT -> CheckoutState.NOTIFICATION_SENT
+            is NOTIFICATION_SENT -> CheckoutState.BOOKING_COMPLETED
         }
 
 
