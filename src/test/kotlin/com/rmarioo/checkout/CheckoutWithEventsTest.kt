@@ -11,10 +11,10 @@ import com.rmarioo.checkout.commands.NotificationManager
 import com.rmarioo.checkout.commands.PaymentGateway
 import com.rmarioo.checkout.commands.PricedProduct
 import com.rmarioo.checkout.commands.SupplierManager
-import com.rmarioo.checkout.events.CheckoutState.BOOKING_COMPLETED
-import com.rmarioo.checkout.events.CheckoutState.BOOKING
-import com.rmarioo.checkout.events.CheckoutState.ORDER
-import com.rmarioo.checkout.events.CheckoutState.WISH_LIST
+import com.rmarioo.checkout.CheckoutStatus.BOOKING_COMPLETED
+import com.rmarioo.checkout.CheckoutStatus.BOOKING
+import com.rmarioo.checkout.CheckoutStatus.ORDER
+import com.rmarioo.checkout.CheckoutStatus.WISH_LIST
 import com.rmarioo.checkout.events.EventHandler
 import com.rmarioo.checkout.events.InMemoryEventStore
 import org.hamcrest.CoreMatchers.`is`
